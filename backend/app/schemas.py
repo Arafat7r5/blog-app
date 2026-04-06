@@ -46,3 +46,21 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     id: Optional[int] = None
     role: Optional[str] = None
+
+
+# Post Schemas 
+
+class PostCreate(BaseModel):
+    title: str
+    content: str
+
+class PostResponse(BaseModel):
+    post_id: int
+    title: str
+    content: str
+    approved: bool
+    created_at: datetime
+    author: UserResponse
+
+    class Config:
+        from_attributes = True
