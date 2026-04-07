@@ -34,6 +34,7 @@ export default function LoginPage() {
 
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", "user");
+      localStorage.setItem("email", form.email);
       router.push("/user");
     } catch (err) {
       setError(err.message);

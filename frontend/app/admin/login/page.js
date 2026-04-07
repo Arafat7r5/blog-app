@@ -33,6 +33,7 @@ export default function AdminLoginPage() {
 
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("role", "admin");
+      localStorage.setItem("email", form.email);
       router.push("/admin/dashboard");
     } catch (err) {
       setError(err.message);
