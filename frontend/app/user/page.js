@@ -1,37 +1,32 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE } from "../../../lib/api";
+import { API_BASE } from "../../lib/api";
 
-export default function AdminDashboard() {
+export default function UserDashboard() {
   const router = useRouter();
   const [pendingPosts, setPendingPosts] = useState([]);
   const [approvedPosts, setApprovedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchPosts = async () => {
+  const fetchMyPosts = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      router.push("/admin/login");
+      router.push("/login");
       return;
     }
 
     try {
-      // Fetch pending posts (admin only endpoint)
-      const pendingRes = await fetch(`${API_BASE}/posts/pending`, {
+      const res = await fetch(`${API_BASE}/posts/user/myposts`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const pendingData = await pendingRes.json();
-      if (!pendingRes.ok) throw new Error(pendingData.detail || "Failed to fetch pending posts");
 
-      // Fetch approved posts (public endpoint)
-      const approvedRes = await fetch(`${API_BASE}/posts/approved`);
-      const approvedData = await approvedRes.json();
-      if (!approvedRes.ok) throw new Error(approvedData.detail || "Failed to fetch approved posts");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Failed to fetch your posts");
 
-      setPendingPosts(pendingData);
-      setApprovedPosts(approvedData);
+      setPendingPosts(data.filter((post) => !post.approved));
+      setApprovedPosts(data.filter((post) => post.approved));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -39,39 +34,19 @@ export default function AdminDashboard() {
     }
   };
 
-  const approvePost = async (post_id) => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(`${API_BASE}/posts/${post_id}/approve`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.detail || "Failed to approve");
-      }
-
-      fetchPosts();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
   useEffect(() => {
-    fetchPosts();
+    fetchMyPosts();
   }, []);
 
-  if (loading) return <p className="text-gray-500">Loading...</p>;
+  if (loading) return <p className="text-gray-500">Loading your posts...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
-  const PostCard = ({ post, showApproveButton }) => (
+  const PostCard = ({ post }) => (
     <div className="border border-gray-200 rounded-lg p-5 mb-4">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-lg font-bold text-black">{post.title}</h2>
           <p className="text-sm text-gray-500 mb-2">
-            By {post.author.name} ·{" "}
             {new Date(post.created_at).toLocaleDateString()}
           </p>
           <p className="text-gray-700">
@@ -81,17 +56,10 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="ml-4 flex-shrink-0">
-          {showApproveButton ? (
-            <button
-              onClick={() => approvePost(post.post_id)}
-              className="bg-blue-600 text-white px-4 py-1 rounded-lg text-sm hover:bg-blue-700 transition"
-            >
-              Approve
-            </button>
+          {post.approved ? (
+            <span className="text-green-600 text-sm font-semibold">Approved</span>
           ) : (
-            <span className="text-green-600 text-sm font-semibold">
-              Approved
-            </span>
+            <span className="text-yellow-500 text-sm font-semibold">Pending</span>
           )}
         </div>
       </div>
@@ -100,13 +68,12 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      {/* Two sections side by side */}
       <div className="flex gap-6 items-start">
 
-        {/* Pending Posts Section */}
+        {/* Pending Posts */}
         <section className="flex-1">
           <h2 className="text-xl font-semibold text-black mb-4 border-b pb-2">
-            Pending Posts{" "}
+            Pending{" "}
             <span className="text-gray-400 text-base font-normal">
               ({pendingPosts.length})
             </span>
@@ -115,7 +82,7 @@ export default function AdminDashboard() {
             <p className="text-gray-500">No pending posts.</p>
           ) : (
             pendingPosts.map((post) => (
-              <PostCard key={post.post_id} post={post} showApproveButton={true} />
+              <PostCard key={post.post_id} post={post} />
             ))
           )}
         </section>
@@ -123,10 +90,10 @@ export default function AdminDashboard() {
         {/* Divider */}
         <div className="w-px bg-gray-200 self-stretch"></div>
 
-        {/* Approved Posts Section */}
+        {/* Approved Posts */}
         <section className="flex-1">
           <h2 className="text-xl font-semibold text-black mb-4 border-b pb-2">
-            Approved Posts{" "}
+            Approved{" "}
             <span className="text-gray-400 text-base font-normal">
               ({approvedPosts.length})
             </span>
@@ -135,7 +102,7 @@ export default function AdminDashboard() {
             <p className="text-gray-500">No approved posts yet.</p>
           ) : (
             approvedPosts.map((post) => (
-              <PostCard key={post.post_id} post={post} showApproveButton={false} />
+              <PostCard key={post.post_id} post={post} />
             ))
           )}
         </section>

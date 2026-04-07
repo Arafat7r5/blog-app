@@ -7,6 +7,30 @@ from ..database import get_db
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
+# View All Approved Posts (anyone)
+@router.get("/approved", response_model=List[PostResponse])
+def get_approved_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).filter(models.Post.approved == True).all()
+    return posts
+
+# View Pending Posts (admins only)
+@router.get("/pending", response_model=List[PostResponse])
+def get_unapproved_posts(
+    db: Session = Depends(get_db),
+    current_admin: models.Admin = Depends(oauth2.get_current_admin)
+):
+    posts = db.query(models.Post).filter(models.Post.approved == False).all()
+    return posts
+
+# View logged-in user's own posts
+@router.get("/user/myposts", response_model=List[PostResponse])
+def get_my_posts(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(oauth2.get_current_user)
+):
+    posts = db.query(models.Post).filter(models.Post.user_id == current_user.id).all()
+    return posts
+
 
 # Create Post (users only)
 @router.post("/", response_model=PostResponse, status_code=201)
@@ -26,25 +50,6 @@ def create_post(
     return new_post
 
 
-# View All Approved Posts (anyone)
-@router.get("/", response_model=List[PostResponse])
-def get_approved_posts(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).filter(models.Post.approved == True).all()
-    return posts
-
-
-#  View Single Approved Post (anyone) 
-@router.get("/{post_id}", response_model=PostResponse)
-def get_post(post_id: int, db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(
-        models.Post.post_id == post_id,
-        models.Post.approved == True
-    ).first()
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
-    return post
-
-
 # Approve Post (admins only) 
 @router.patch("/{post_id}/approve", response_model=PostResponse)
 def approve_post(
@@ -62,13 +67,3 @@ def approve_post(
     db.commit()
     db.refresh(post)
     return post
-
-
-# View All Posts (admins only — to see pending posts)
-@router.get("/admin/all", response_model=List[PostResponse])
-def get_all_posts(
-    db: Session = Depends(get_db),
-    current_admin: models.Admin = Depends(oauth2.get_current_admin)
-):
-    posts = db.query(models.Post).all()
-    return posts

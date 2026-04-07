@@ -10,7 +10,7 @@ export default function PostsPage() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch(`${API_BASE}/posts/`);
+        const res = await fetch(`${API_BASE}/posts/approved`);
         const data = await res.json();
         setPosts(data);
       } catch (err) {
