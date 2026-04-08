@@ -42,7 +42,6 @@ export default function AdminDashboard() {
   };
 
   const approvePost = async (post_id) => {
-    const { user } = useAuth();
     const token = user?.token;
     try {
       const res = await fetch(`${API_BASE}/posts/${post_id}/approve`, {

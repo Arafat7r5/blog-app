@@ -40,7 +40,7 @@ export default function CreatePostPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Failed to create post");
 
-      router.push("/posts");
+      router.push("/user");
     } catch (err) {
       setError(err.message);
     } finally {
