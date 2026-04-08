@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "../../../lib/api";
+import { useAuth } from "../../../lib/AuthContext";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,9 +33,7 @@ export default function AdminLoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Login failed");
 
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("role", "admin");
-      localStorage.setItem("email", form.email);
+      login(data.access_token, form.email, "admin");
       router.push("/admin/dashboard");
     } catch (err) {
       setError(err.message);

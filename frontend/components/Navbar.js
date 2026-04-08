@@ -1,25 +1,14 @@
 "use client";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../lib/AuthContext";
 
 export default function Navbar() {
   const router = useRouter();
-  const pathname = usePathname();
-  const [email, setEmail] = useState(null);
-  const [role, setRole] = useState(null);
-
-  useEffect(() => {
-    setEmail(localStorage.getItem("email"));
-    setRole(localStorage.getItem("role"));
-  }, [pathname]);
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("email");
-    setEmail(null);
-    setRole(null);
+    logout();
     router.push("/login");
   };
 
@@ -36,11 +25,9 @@ export default function Navbar() {
           Write
         </Link>
 
-        {email ? (
+        {user ? (
           <>
-            <Link href={role === "admin" ? "/admin/dashboard" : "/user"} className="hover:text-blue-400 transition">
-              {email}
-            </Link>
+            <Link href = {user.role === "admin" ? "/admin/dashboard" : "/user"} className="text-blue-400">{user.email}</Link>
             <button onClick={handleLogout} className="hover:text-red-400 transition">
               Logout
             </button>

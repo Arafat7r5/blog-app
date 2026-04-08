@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "../../../lib/api";
+import { useAuth } from "../../../lib/AuthContext";
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -9,9 +10,10 @@ export default function AdminDashboard() {
   const [approvedPosts, setApprovedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { user } = useAuth();
 
   const fetchPosts = async () => {
-    const token = localStorage.getItem("token");
+    const token = user?.token;
     if (!token) {
       router.push("/admin/login");
       return;
@@ -40,7 +42,8 @@ export default function AdminDashboard() {
   };
 
   const approvePost = async (post_id) => {
-    const token = localStorage.getItem("token");
+    const { user } = useAuth();
+    const token = user?.token;
     try {
       const res = await fetch(`${API_BASE}/posts/${post_id}/approve`, {
         method: "PATCH",
@@ -60,7 +63,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [user]);
 
   if (loading) return <p className="text-gray-500">Loading...</p>;
   if (error) return <p className="text-red-500">{error}</p>;

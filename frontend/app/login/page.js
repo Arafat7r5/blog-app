@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { API_BASE } from "../../lib/api";
+import { useAuth } from "../../lib/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,9 +34,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Login failed");
 
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("role", "user");
-      localStorage.setItem("email", form.email);
+      login(data.access_token, form.email, "user");
       router.push("/user");
     } catch (err) {
       setError(err.message);

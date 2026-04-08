@@ -2,12 +2,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "../../../lib/api";
+import { useAuth } from "../../../lib/AuthContext";
 
 export default function CreatePostPage() {
   const router = useRouter();
   const [form, setForm] = useState({ title: "", content: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -18,7 +20,7 @@ export default function CreatePostPage() {
     setLoading(true);
     setError("");
 
-    const token = localStorage.getItem("token");
+    const token = user?.token;
     if (!token) {
       setError("You must be logged in to create a post.");
       setLoading(false);

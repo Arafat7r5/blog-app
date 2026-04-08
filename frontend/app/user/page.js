@@ -2,16 +2,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE } from "../../lib/api";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function UserDashboard() {
   const router = useRouter();
+  const { user } = useAuth();
   const [pendingPosts, setPendingPosts] = useState([]);
   const [approvedPosts, setApprovedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const fetchMyPosts = async () => {
-    const token = localStorage.getItem("token");
+    const token = user?.token;
     if (!token) {
       router.push("/login");
       return;
@@ -36,7 +38,7 @@ export default function UserDashboard() {
 
   useEffect(() => {
     fetchMyPosts();
-  }, []);
+  }, [user]);
 
   if (loading) return <p className="text-gray-500">Loading your posts...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
